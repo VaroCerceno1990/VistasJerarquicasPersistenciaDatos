@@ -7,6 +7,7 @@
 //
 
 import UIKit
+import CoreData
 
 class LibroBusquedaController: UIViewController {
     
@@ -14,11 +15,12 @@ class LibroBusquedaController: UIViewController {
     var libro : Libro!
     var listadoLibro : ListadoLibrosController!
     let baseurl = "https://openlibrary.org/api/books?jscmd=data&format=json&bibkeys=ISBN:"
-    
+    var context: NSManagedObjectContext!
 
     override func viewDidLoad() {
         super.viewDidLoad()
         self.title="Búsqueda"
+        context = (UIApplication.shared.delegate as! AppDelegate).managedObjectContext
 
         // Do any additional setup after loading the view.
     }
@@ -26,6 +28,7 @@ class LibroBusquedaController: UIViewController {
     override func didReceiveMemoryWarning() {
         super.didReceiveMemoryWarning()
         // Dispose of any resources that can be recreated.
+
     }
     
 
@@ -144,6 +147,26 @@ class LibroBusquedaController: UIViewController {
                 {
                 self.libro = bookAux
                 self.listadoLibro.listadoLibros.append(bookAux!)
+                    
+                   //Agregar libro
+                    let libroEntidad = NSEntityDescription.insertNewObject(forEntityName: "Libro", into: self.context!)
+                    
+                    libroEntidad.setValue(bookAux?.isbn, forKey: "isbnLibro")
+                    libroEntidad.setValue(bookAux?.titulo, forKey: "tituloLibro")
+                    libroEntidad.setValue(bookAux?.autores, forKey: "autorLibro")
+                    libroEntidad.setValue(UIImageJPEGRepresentation((bookAux?.imagen)!, 1.0), forKey: "imagenLibro")
+                    
+                    do {
+                        
+                        try self.context.save()
+                        
+                    } catch {
+                        
+                        print("\(#function): Unable to save context!")
+                    }
+
+                    
+                    
                 
                 self.performSegue(withIdentifier: "LibroSegue", sender: sender)
                 }

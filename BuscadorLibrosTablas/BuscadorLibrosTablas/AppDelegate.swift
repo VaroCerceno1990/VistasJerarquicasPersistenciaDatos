@@ -40,5 +40,45 @@ class AppDelegate: UIResponder, UIApplicationDelegate {
     func applicationWillTerminate(_ application: UIApplication) {
         // Called when the application is about to terminate. Save data if appropriate. See also applicationDidEnterBackground:.
     }
+    
+    // MARK: - Core Data Stack
+    
+    lazy var applicationDocumentsDirectory: URL = {
+        
+        let urls = FileManager.default.urls(for: .documentDirectory, in: .userDomainMask)
+        return urls[urls.count - 1]
+    }()
+    
+    lazy var managedObjectModel: NSManagedObjectModel = {
+        
+        let modelURL = Bundle.main.url(forResource: "BuscadorLibrosTablas", withExtension: "momd")!
+        return NSManagedObjectModel(contentsOf: modelURL)!
+    }()
+    
+    lazy var persistentStoreCoordinator: NSPersistentStoreCoordinator = {
+        
+        let coordinator = NSPersistentStoreCoordinator(managedObjectModel: self.managedObjectModel)
+        let url = self.applicationDocumentsDirectory.appendingPathComponent("Libros.sqlite")
+        
+        do {
+            
+            try coordinator.addPersistentStore(ofType: NSSQLiteStoreType, configurationName: nil, at: url, options: nil)
+            
+        } catch {
+            
+            NSLog("persistentStoreCoordinator: Error!")
+        }
+        
+        return coordinator
+    }()
+    
+    lazy var managedObjectContext: NSManagedObjectContext = {
+        
+        var managedObjectContext = NSManagedObjectContext(concurrencyType: .mainQueueConcurrencyType)
+        managedObjectContext.persistentStoreCoordinator = self.persistentStoreCoordinator
+        
+        return managedObjectContext
+    }()
+
 }
 

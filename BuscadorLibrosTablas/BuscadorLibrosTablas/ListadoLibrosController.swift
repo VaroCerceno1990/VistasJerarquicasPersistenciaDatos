@@ -7,20 +7,18 @@
 //
 
 import UIKit
+import CoreData
 
 class ListadoLibrosController: UITableViewController{
 
     
     var listadoLibros = [Libro]()
+     var context: NSManagedObjectContext!
 
     override func viewDidLoad() {
         super.viewDidLoad()
-
-        // Uncomment the following line to preserve selection between presentations
-        // self.clearsSelectionOnViewWillAppear = false
-
-        // Uncomment the following line to display an Edit button in the navigation bar for this view controller.
-        // self.navigationItem.rightBarButtonItem = self.editButtonItem()
+        context = (UIApplication.shared.delegate as! AppDelegate).managedObjectContext
+        CargarLibros()
     }
 
     override func didReceiveMemoryWarning() {
@@ -69,16 +67,41 @@ class ListadoLibrosController: UITableViewController{
             (segue.destination as! LibroBusquedaController).listadoLibro = self
         }
     }
+    
+    
+//Cargue libros de la BD
+func CargarLibros () {
+    
+    let bookEntity = NSEntityDescription.entity(forEntityName: "Libro", in: context!)
+    
+    let fetchAllBooks = bookEntity?.managedObjectModel.fetchRequestTemplate(forName: "TodosLibros")
+    
+    do {
+    
+    let libroEncontrados = try context.fetch(fetchAllBooks!)
+    
+    for libroEncontrado in libroEncontrados {
+    
+    let isbnLibro = (libroEncontrado as AnyObject).value(forKey: "isbnLibro") as! String
+    let titleLibro = (libroEncontrado as AnyObject).value(forKey: "tituloLibro") as! String
+    let authorLibro = (libroEncontrado as AnyObject).value(forKey: "autorLibro") as! [String]
+    let portadaLibro = (libroEncontrado as AnyObject).value(forKey: "imagenLibro")
 
 
-    /*
-    // MARK: - Navigation
-
-    // In a storyboard-based application, you will often want to do a little preparation before navigation
-    override func prepare(for segue: UIStoryboardSegue, sender: Any?) {
-        // Get the new view controller using segue.destinationViewController.
-        // Pass the selected object to the new view controller.
+    var libro=Libro(isbnCode: isbnLibro, title: titleLibro, authors: authorLibro, cover: UIImage())
+    
+        if portadaLibro != nil {
+            libro.imagen = UIImage(data: portadaLibro as! Data)!
+        }
+        
+        listadoLibros.append(libro)
+      }
+    
+    } catch {
+    
+    print("\(#function): Unable to execute fetch request!")
     }
-    */
+    }
 
+  
 }
